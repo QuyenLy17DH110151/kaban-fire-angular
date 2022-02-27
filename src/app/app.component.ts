@@ -1,7 +1,10 @@
 import { CdkDragDrop, transferArrayItem } from '@angular/cdk/drag-drop';
 import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { TaskDialogComponent } from './task-dialog/task-dialog.component';
+import {
+  TaskDialogComponent,
+  TaskDialogResult,
+} from './task-dialog/task-dialog.component';
 import { TaskModel } from './task/task.model';
 
 @Component({
@@ -25,8 +28,29 @@ export class AppComponent {
 
   constructor(private dialog: MatDialog) {}
 
-  editTask(list: string, task: TaskModel): void {}
-
+  editTask(list: 'done' | 'todo' | 'inProgress', task: TaskModel): void {
+    const dialogRef = this.dialog.open(TaskDialogComponent, {
+      width: '270px',
+      data: {
+        task,
+        enableDelete: true,
+      },
+    });
+    dialogRef
+      .afterClosed()
+      .subscribe((result: TaskDialogResult | undefined) => {
+        if (!result) {
+          return;
+        }
+        const dataList = this[list];
+        const taskIndex = dataList.indexOf(task);
+        if (result.delete) {
+          dataList.splice(taskIndex, 1);
+        } else {
+          dataList[taskIndex] = task;
+        }
+      });
+  }
   drop(event: any): void {
     if (event.previousContainer === event.container) {
       return;
